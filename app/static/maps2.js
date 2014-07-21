@@ -83,9 +83,6 @@ var Forms = augment(Object, function () {
 		this.send_pass = document.querySelector('[data-send="passenger"]');
 		this.send_pass.addEventListener('submit', this.controller_pass.bind(this));
 
-		this.send_event = document.querySelector('[data-send="event"]');
-		this.send_event.addEventListener('submit', this.controller_event.bind(this));
-
 		document.body.addEventListener('click', function (e) {
 			var target = e.target;
 			if (target.dataset.join) {
@@ -173,47 +170,6 @@ var Forms = augment(Object, function () {
 		});
 	}
 
-	this.controller_event = function (e) {
-		e.preventDefault();
-
-		var form  = e.target;
-
-		var m = {};
-		m.name = form.name.value;
-		m.address = map.new_event.loc.address;
-		m.lat = map.new_event.loc.lat;
-		m.lng = map.new_event.loc.lng;
-		m.date = form.date.value;
-		m.time = form.time.value;
-		m.details = form.details.value;
-		m.circle = getParameterByName('circle');
-
-		var push = $.ajax({
-			type: 'POST',
-			url: '/newevent',
-			dataType: 'json',
-			contentType: 'application/json; charset=UTF-8',
-			data: JSON.stringify(m)
-		});
-
-		push.done(function (data) {
-			flow.change_slide('select_location');
-			notify({
-				type: 'success',
-				strong: 'Event created!',
-				message: 'We sent you a confirmation email.'
-			});
-		});
-
-		push.fail(function (data, status) {
-			notify({
-				type: 'danger',
-				strong: 'Sorry!',
-				message: 'The event was not created. Please try again.'
-			});
-		});
-	}
-
 	this.controller_join = function (e) {
 		e.preventDefault();
 		var target = e.target;
@@ -251,27 +207,6 @@ var Forms = augment(Object, function () {
 
 var Markers = augment(Object, function () {
 	this.constructor = function () {
-		this.req_events = $.ajax({
-			type: 'POST',
-			url: '/events',
-			dataType: 'json',
-			contentType: 'application/json; charset=UTF-8',
-			data: JSON.stringify({
-				circle: getParameterByName('circle')
-			})
-		});
-
-		this.req_events.done(function (data) {
-			map.events = data;
-			for (var i = 0; i < map.events.length; i++) {
-				this.add_event(i);
-			}
-		}.bind(this));
-
-		this.req_events.fail(function (message, status) {
-
-		}.bind(this));
-
 		this.req_rides = $.ajax({
 			type: 'POST',
 			url: '/rides',
@@ -293,42 +228,7 @@ var Markers = augment(Object, function () {
 
 		}.bind(this));
 	}
-
-	this.add_event = function (idx) {
-		/* Get Event */
-		var event = map.events[idx];
-		/* Get template for popup on click */
-		var layout = document.querySelector('[data-template="popup-event"]');
-		var source = Handlebars.compile(layout.innerHTML);
-		/* Generate HTML */
-		var html = source({
-			add: event.address,
-			date: event.date,
-			id: event.id
-		});
-
-		event_pos = new google.maps.LatLng(
-			event.lat,
-			event.lng
-		)
-
-		event.marker = new google.maps.Marker({
-			position: event_pos,
-			icon: icons.person
-		})
-
-		event.marker_info = new google.maps.InfoWindow({
-			position: event_pos,
-			content: html
-		});
-
-		google.maps.event.addListener(event.marker, 'click', function () {
-			event.marker_info.open(map.map, event.marker)
-		}.bind(this));
-
-		event.marker.setMap(map.map);
-	}
-
+	
 	this.add_ride = function (idx) {
 		/* Get ride */
 		var ride = map.rides[idx];

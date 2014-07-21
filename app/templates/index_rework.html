@@ -21,7 +21,6 @@
     <div class="panel-body">
         To get started, <b>click on a marker to get details</b> or
         <div class="btn-group">
-            <button class='btn btn-default' data-next='create_event'>Create a new Event</button>
             <button class='btn btn-default' data-next='create_ride'>Create a new Ride</button>
         </div>
         <div class="btn-group pull-right">
@@ -47,10 +46,6 @@
             <img src="/static/carGreen.png" />
             Starting point
         </div>
-        <div class="key">
-            <img src="/static/person.png" />
-            Event
-        </div>
     </div>
 </div>
 
@@ -68,34 +63,6 @@
 
     <div class="col-md-4" data-route='location_selection'>
         
-    </div>
-
-    <div class="col-md-4" data-route='event_details'>
-        <form data-send="event">
-            <div class="form-group">
-                <label>Event Name</label>
-                <input class="form-control" type="text" placeholder="Name" name='name'>
-            </div>
-            <div class="form-group">
-                <label>Date</label>
-                <input class="form-control date-select" type="text" placeholder="Date" name='date'>
-            </div>
-            <div class="form-group">
-                <label>Time</label>
-                <input class="form-control" type="text" placeholder="Time" name='time'>
-            </div>
-            <div class="form-group">
-                <label>Details</label>
-                <input class="form-control" type="text" placeholder="Details" name='details'>
-            </div>
-            <!-- <div class="form-group">
-                <label>Circle</label>
-                <select class="form-control" >
-                    <option>All</option>
-                </select>
-            </div> -->
-            <button type='submit' class='btn btn-primary'>Create Event</button>
-        </form>
     </div>
 
     <div class="col-md-4" data-route='select_type'>
@@ -271,25 +238,6 @@
         <strong>{{secondary}} Location:</strong> {{secondary_add}}
     </div>
     <button class='btn btn-primary' data-next='join_ride' data-id='{{id}}'>Join this ride</button>
-</script>
-
-<script data-template='popup-event' type="text/x-handlebars-template">
-    <div class="entry">
-        This is an <strong>event</strong>.
-    </div>
-    <div class="entry">
-        <strong>Location:</strong> {{add}}
-    </div>
-    <div class="entry">
-        <strong>Date:</strong> {{date}}
-    </div>
-    <a class='btn btn-primary' href='/event/{{id}}'>
-        View Event
-    </a>
-    <button class='btn btn-primary' data-next='ride_to_event' data-id='{{id}}'>
-        Create a ride to this event.
-    </button>
-    <p class="help-block">View the event to look for rides / set up rides.</p>
 </script>
 
 <script data-notify="template" type='text/x-handlebars-template'>
