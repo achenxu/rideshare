@@ -21,7 +21,8 @@
     <div class="panel-body">
         To get started, <b>click on a marker to get details</b> or
         <div class="btn-group">
-            <button class='btn btn-default' data-next='create_ride'>Create a new Ride</button>
+            <button class='btn btn-default' data-next='create_trip'>Create a Trip</button>
+            <button class='btn btn-default' data-next='create_ride'>Ask for a Ride</button>
         </div>
         <div class="btn-group pull-right">
             <button class='btn btn-primary' data-reset>
@@ -201,32 +202,6 @@
     </div>
 </script>
 
-<script data-template='join_ride' type="text/x-handlebars-template">
-    <h1>Join a ride</h1>
-    <ul class="information">
-        <li>
-            <b>Origin:</b> {{origin}}
-        </li>
-        <li>
-            <b>Destination:</b> {{dest}}
-        </li>
-        <li>
-            <b>Date:</b> {{date}}
-        </li>
-        <li>
-            <b>Time:</b> {{time}}
-        </li>
-        <li>
-            <b>Driver:</b> {{driver}}
-        </li>
-
-    </ul>
-    <button class="btn btn-primary btn-large" data-join='passenger:{{id}}'>Join as Passenger</button>
-    {{#unless driver}}
-    <button class='btn btn-primary btn-large' data-join='driver:{{id}}'>Join as Driver</button>
-    {{/unless}}
-</script>
-
 <script data-template='popup' type="text/x-handlebars-template">
     <div class="entry">
         This is the: <strong>{{primary}}</strong> point.
@@ -237,7 +212,7 @@
     <div class="entry">
         <strong>{{secondary}} Location:</strong> {{secondary_add}}
     </div>
-    <button class='btn btn-primary' data-next='join_ride' data-id='{{id}}'>Join this ride</button>
+    <a class='btn btn-primary' href='/ride/{{id}}'>Join this ride</a>
 </script>
 
 <script data-notify="template" type='text/x-handlebars-template'>

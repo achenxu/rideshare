@@ -228,7 +228,7 @@ var Markers = augment(Object, function () {
 
 		}.bind(this));
 	}
-	
+
 	this.add_ride = function (idx) {
 		/* Get ride */
 		var ride = map.rides[idx];
@@ -294,7 +294,7 @@ var Markers = augment(Object, function () {
 	}
 });
 
-var paths = {
+var old_paths = {
 	create_event: [
 		'location_selection',
 		'event_details'
@@ -332,6 +332,23 @@ var paths = {
 		'join_ride'
 	]
 };
+
+var paths = {
+	create_trip: [
+		'location_selection',
+		'location_dest',
+		'safety',
+		'driver_details'
+	],
+	create_ride: [
+		'location_selection',
+		'location_dest',
+		'driver_details'
+	],
+	join_ride: [
+		'join_ride'
+	]
+}
 
 var Map = augment(Object, function () {
 	this.constructor = function () {
@@ -396,12 +413,20 @@ var Map = augment(Object, function () {
 	};
 
 	this.create_markers = function () {
-	    this.map = new google.maps.Map(document.querySelector('#map_canvas'), {
-	        draggableCursor: 'crosshair',
-	        center: new google.maps.LatLng(this.location.lat, this.location.lng),
-	        mapTypeId: google.maps.MapTypeId.ROADMAP,
-	        zoom: 10
-	    });
+		var map_opts = {
+			center: new google.maps.LatLng(this.location.lat, this.location.lng),
+			zoom: 10,
+			mapTypeControl: true,
+			mapTypeControlOptions: {
+				style: google.maps.MapTypeControlStyle.DROPDOWN_MENU
+			},
+			zoomControl: true,
+			zoomControlOptions: {
+				style: google.maps.ZoomControlStyle.SMALL
+			},
+			mapTypeId: google.maps.MapTypeId.ROADMAP
+		}
+	    this.map = new google.maps.Map(document.querySelector('#map_canvas'), map_opts);
 
 	    google.maps.event.addListener(this.map, 'click', this.get_address.bind(this))
 
@@ -455,24 +480,11 @@ var Map = augment(Object, function () {
 	this.disp_address = function (deta) {
 		console.log(this.state);
 		if (this.state == 'location_selection') {
-			console.log('selection')
-			var set = {};
-			if (flow.path_history.indexOf('create_ride') > -1) {
-				this.set_window(deta, 'success');
-				this.new_ride.orig = {};
-				set = this.new_ride.orig;
-			} else if (flow.path_history.indexOf('create_event') > -1) {
-				this.set_window(deta, 'person');
-				this.new_event.loc = {};
-				set = this.new_event.loc;
-			} else if (flow.path_history.indexOf('ride_to_event') > -1) {
-				this.set_window(deta, 'error');
-				this.new_ride.dest = {};
-				set = this.new_ride.dest;
-			}
-			set.lat = deta.lat;
-			set.lng = deta.lng;
-			set.address = deta.add;
+			this.set_window(deta, 'success');
+			this.new_ride.orig = {};
+			this.new_ride.orig.lat = deta.lat;
+			this.new_ride.orig.lng = deta.lng;
+			this.new_ride.orig.address = deta.add;
 
 			var select_text = document.querySelector('[data-location="text"]');
 			var select_btn = document.querySelector('[data-location="btn"]');
@@ -499,33 +511,6 @@ var Map = augment(Object, function () {
 	this.special_action = function (btn) {
 		if (this.state == 'select_location') {
 			this.create_new_marker = false;
-		}
-		if (this.state == 'join_ride') {
-			var id = btn.dataset.id;
-			var container = document.querySelector('[data-route="join_ride"]');
-			var source = document.querySelector('[data-template="join_ride"]').innerHTML;
-			var template = Handlebars.compile(source);
-			var ride;
-			// Find specific ride by ID
-			for (var i = 0; i < this.rides.length; i++) {
-				if (this.rides[i].id = id) {
-					ride = this.rides[i];
-				}
-			}
-			var html = template({
-				origin: ride.origin_add,
-				dest: ride.dest_add,
-				date: ride.date,
-				time: ride.time,
-				driver: ride.driver,
-				driver_name: ride.driver_name,
-				contact: ride.contact,
-				id: ride.id
-			});
-			while (container.firstChild) {
-				container.removeChild(container.firstChild)
-			}
-			container.insertAdjacentHTML('beforeend', html);
 		}
 		if (this.state == 'ride_to_event') {
 			this.new_ride.event = btn.dataset.id;

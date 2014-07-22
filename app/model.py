@@ -69,15 +69,13 @@ class Ride(db.Model):
     contact = db.StringProperty()
     details = db.StringProperty()
     circle = db.ReferenceProperty(Circle)
-    event = db.ReferenceProperty(Event)
+    tag = db.StringProperty()
 
     def to_dict(self):
         resp = {}
         for p in Ride._properties:
             resp[p] = str(getattr(self, p))
         resp['id'] = self.key().id()
-        if self.event != None: 
-            resp['event'] = self.event.to_dict()
         return resp
 
 class Comment(db.Model):
