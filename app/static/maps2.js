@@ -11,7 +11,7 @@ function getParameterByName(name) {
 	}		
 }
 
-if (!Array.prototype.last){
+if (!Array.prototype.last) {
     Array.prototype.last = function () {
         return this[this.length - 1];
     };
@@ -70,6 +70,16 @@ var icons = {
 	},
 	plus: {
 		url: '/static/cross.png',
+		anchor: new google.maps.Point(20, 20),
+		size: new google.maps.Size(30, 40)
+	},
+	start: {
+		url: '/static/start.png',
+		anchor: new google.maps.Point(20, 20),
+		size: new google.maps.Size(30, 40)
+	},
+	end: {
+		url: '/static/end.png',
 		anchor: new google.maps.Point(20, 20),
 		size: new google.maps.Size(30, 40)
 	}
@@ -169,40 +179,6 @@ var Forms = augment(Object, function () {
 			});
 		});
 	}
-
-	this.controller_join = function (e) {
-		e.preventDefault();
-		var target = e.target;
-		var data = target.dataset.join.split(':');
-
-		var push = $.ajax({
-			type: 'POST',
-			url: '/join_ride',
-			dataType: 'json',
-			contentType: 'application/json; charset=UTF-8',
-			data: JSON.stringify({
-				type: data[0],
-				id: data[1]
-			})
-		});
-
-		push.done(function (data) {
-			flow.change_slide('select_location');
-			notify({
-				type: 'success',
-				strong: 'You joined the ride!',
-				message: 'We sent you a confirmation email.'
-			});
-		});
-
-		push.fail(function (data, status) {
-			notify({
-				type: 'danger',
-				strong: 'Sorry!',
-				message: 'You did not join the ride. Please try again.'
-			});
-		});
-	}
 });
 
 var Markers = augment(Object, function () {
@@ -222,10 +198,6 @@ var Markers = augment(Object, function () {
 			for (var i = 0; i < map.rides.length; i++) {
 				this.add_ride(i);
 			}
-		}.bind(this));
-
-		this.req_rides.fail(function (message, status) {
-
 		}.bind(this));
 	}
 
@@ -251,7 +223,7 @@ var Markers = augment(Object, function () {
 		);
 		ride.origin_marker = new google.maps.Marker({
 			position: origin_pos,
-			icon: icons.success
+			icon: icons.start
 		});
 		ride.origin_info = new google.maps.InfoWindow({
 			position: origin_pos,
@@ -263,33 +235,31 @@ var Markers = augment(Object, function () {
 		}.bind(this));
 		ride.origin_marker.setMap(map.map);
 		
-		if (ride.event == 'None') {
-			/* Create dest marker & info window */
-			var dest_html = source({
-				secondary: 'Starting',
-				secondary_add: ride.origin_add,
-				primary: 'Ending',
-				primary_add: ride.dest_add,
-				id: ride.id
-			})
-			dest_pos = new google.maps.LatLng(
-				ride.dest_lat,
-				ride.dest_lng
-			)
-			ride.dest_marker = new google.maps.Marker({
-				position: dest_pos,
-				icon: icons.error
-			})
-			ride.dest_info = new google.maps.InfoWindow({
-				position: dest_pos,
-				content: dest_html
-			});
+		/* Create dest marker & info window */
+		var dest_html = source({
+			secondary: 'Starting',
+			secondary_add: ride.origin_add,
+			primary: 'Ending',
+			primary_add: ride.dest_add,
+			id: ride.id
+		})
+		dest_pos = new google.maps.LatLng(
+			ride.dest_lat,
+			ride.dest_lng
+		)
+		ride.dest_marker = new google.maps.Marker({
+			position: dest_pos,
+			icon: icons.end
+		})
+		ride.dest_info = new google.maps.InfoWindow({
+			position: dest_pos,
+			content: dest_html
+		});
 
-			google.maps.event.addListener(ride.dest_marker, 'click', function () {
-				ride.dest_info.open(map.map, ride.dest_marker);
-			}.bind(this));
-			ride.dest_marker.setMap(map.map);
-		}
+		google.maps.event.addListener(ride.dest_marker, 'click', function () {
+			ride.dest_info.open(map.map, ride.dest_marker);
+		}.bind(this));
+		ride.dest_marker.setMap(map.map);
 
 	}
 });
@@ -358,16 +328,12 @@ var Map = augment(Object, function () {
 			lng: -91.799501
 		};
 		this.rides = {};
-		this.windows = [];
-		this.events = {};
 		this.map;
 		this.geocoder;
 
-		this.last = false;
 		this.state = 'select_location';
 		this.indicator = '';
 		this.new_ride = {};
-		this.new_event = {};
 
 		this.markers = [];
 
@@ -397,7 +363,6 @@ var Map = augment(Object, function () {
 
 	this.reset = function () {
 		if (typeof flow != 'undefined') {
-			this.last = false;
 			this.state = 'select_location';
 			flow.reset();
 		}
@@ -424,7 +389,8 @@ var Map = augment(Object, function () {
 			zoomControlOptions: {
 				style: google.maps.ZoomControlStyle.SMALL
 			},
-			mapTypeId: google.maps.MapTypeId.ROADMAP
+			mapTypeId: google.maps.MapTypeId.ROADMAP,
+			draggableCursor: 'crosshair'
 		}
 	    this.map = new google.maps.Map(document.querySelector('#map_canvas'), map_opts);
 
@@ -480,7 +446,7 @@ var Map = augment(Object, function () {
 	this.disp_address = function (deta) {
 		console.log(this.state);
 		if (this.state == 'location_selection') {
-			this.set_window(deta, 'success');
+			this.set_window(deta, 'start');
 			this.new_ride.orig = {};
 			this.new_ride.orig.lat = deta.lat;
 			this.new_ride.orig.lng = deta.lng;
@@ -489,12 +455,12 @@ var Map = augment(Object, function () {
 			var select_text = document.querySelector('[data-location="text"]');
 			var select_btn = document.querySelector('[data-location="btn"]');
 
-			select_text.textContent = set.address;
+			select_text.textContent = deta.add;
 			select_btn.classList.remove('hidden');
 		}
 		if (this.state == 'location_dest') {
 			console.log('destination')
-			this.set_window(deta, 'error');
+			this.set_window(deta, 'end');
 			this.new_ride.dest = {};
 			this.new_ride.dest.lat = deta.lat;
 			this.new_ride.dest.lng = deta.lng;
@@ -512,24 +478,7 @@ var Map = augment(Object, function () {
 		if (this.state == 'select_location') {
 			this.create_new_marker = false;
 		}
-		if (this.state == 'ride_to_event') {
-			this.new_ride.event = btn.dataset.id;
-		}
-		if (flow.path_history.last() == 'location_selection') {
-			this.create_new_marker = true;
-			var container = document.querySelector('[data-route="location_selection"]');
-			var source = document.querySelector('[data-template="select_location"]').innerHTML;
-			var template = Handlebars.compile(source);
-
-			var html = template({
-				type: 'test'
-			});
-			while (container.firstChild) {
-				container.removeChild(container.firstChild)
-			}
-			container.insertAdjacentHTML('beforeend', html);
-		}
-		if (flow.path_history.last() == 'location_dest') {
+		if (this.state == 'location_selection' || this.state == 'location_dest') {
 			this.create_new_marker = true;
 		}
 	};

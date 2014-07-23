@@ -78,11 +78,12 @@ var Flow = augment(Object, function () {
 				this.idx = 0;
 			}
 			this.path_history.push(this.path[this.idx]);
+			this.handler.state = this.path[this.idx];
 			if (this.handler) {
 				this.handler.special_action(btn);
 			}
 			this.view_slide(this.path[this.idx]);
-			this.handler.state = this.path[this.idx];
+			
 			this.idx++;
 		}
 		console.log(this.path_history);
